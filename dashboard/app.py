@@ -280,6 +280,10 @@ if st.session_state.get('ready', False):
             status_ph, progress_ph
         )
         status_ph.empty()
+        st.session_state['result_df'] = result_df
+
+    if 'result_df' in st.session_state:
+        result_df = st.session_state['result_df'].copy()
 
         # ── 결과 요약 ──────────────────────────────────────────
         st.markdown("### 탐지 결과 요약")
