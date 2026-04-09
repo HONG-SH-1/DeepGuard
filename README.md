@@ -14,7 +14,7 @@ CICIDS2017 데이터셋을 기반으로 2-Tier Cascade 아키텍처를 구현한
 
 ## 아키텍처
 
-![2-Tier Cascade Architecture](visualizations/vis4_waterfall_2tier.png)
+![2-Tier Cascade Architecture](visualizations/vis4_waterfall_2tier_fix.png)
 
 네트워크 트래픽
 ↓
@@ -56,7 +56,7 @@ CICIDS2017 (Canadian Institute for Cybersecurity)
 - 학습 데이터: 529,481개 중 50% 샘플링 → 약 238,000개
 - 전처리: IP/Port 제거 → MinMaxScaler(정상 데이터로만 fit) → Sliding Window(3D 텐서 변환)
 
-![Sliding Window Concept](visualizations/vis10_sliding_window.png)
+![Sliding Window Concept](visualizations/vis10_sliding_window_fix.png)
 
 원본 CSV는 용량 문제로 이 저장소에 포함하지 않는다. CICIDS2017 공식 페이지에서 직접 받아 `data/CICIDS2017/`에 두면 된다.
 
@@ -118,7 +118,7 @@ BASE가 최적이었다. p97 → Precision 소폭 상승 but Recall 급락. unit
 
 ## Streamlit 시연 결과
 
-![BruteForce 탐지 불가 원인 분석](visualizations/vis9_bruteforce_concept.png)
+![BruteForce 탐지 불가 원인 분석](visualizations/vis9_bruteforce_concept_fix.png)
 
 | 공격 유형 | 데모 탐지율 | Kaggle 평가 결과 | 비고 |
 |-----------|-----------|----------------|------|
