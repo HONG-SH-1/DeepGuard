@@ -38,6 +38,9 @@ Bi-LSTM 단독으로 모든 트래픽을 처리하면 실시간 탐지가 불가
 - **AI/ML**: Python 3.10.6, TensorFlow/Keras, Scikit-learn
 - **데이터**: Pandas, NumPy, CICIDS2017
 - **대시보드**: Streamlit, Plotly
+- **시각화**: Matplotlib, Scipy
+- **개발 환경**: VS Code (Cursor), Kaggle Notebook
+- **버전 관리**: Git, GitHub
 
 ---
 
