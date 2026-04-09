@@ -1,5 +1,9 @@
 # DeepGuard — 딥러닝 기반 실시간 네트워크 침입 탐지 시스템
 
+![Python](https://img.shields.io/badge/Python-3.10.6-blue?logo=python&logoColor=white)
+![TensorFlow](https://img.shields.io/badge/TensorFlow-FF6F00?logo=tensorflow&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit&logoColor=white)
+
 CICIDS2017 데이터셋을 기반으로 2-Tier Cascade 아키텍처를 구현한 비지도학습 NIDS다.
 각 Tier에서 다수 모델을 벤치마크한 뒤 최고 성능 모델을 선정해 튜닝했다.
 
@@ -9,13 +13,16 @@ CICIDS2017 데이터셋을 기반으로 2-Tier Cascade 아키텍처를 구현한
 ---
 
 ## 아키텍처
+
+![2-Tier Cascade Architecture](visualizations/vis4_waterfall_2tier.png)
+
 네트워크 트래픽
 ↓
-[1차 방어선 — Window=5, relu]
+**[1차 방어선 — Window=5, relu]**
 MLP / CNN / GRU 벤치마크 → 최종 선정: MLP Autoencoder
 (초고속 필터링 — 에폭당 5.66s)
 ↓ 의심 트래픽
-[2차 방어선 — Window=20, tanh]
+**[2차 방어선 — Window=20, tanh]**
 LSTM / Bi-LSTM 벤치마크 → 최종 선정: Bi-LSTM Autoencoder
 (정밀 심층 검사 — 에폭당 120.77s)
 ↓
@@ -49,6 +56,8 @@ CICIDS2017 (Canadian Institute for Cybersecurity)
 - 학습 데이터: 529,481개 중 50% 샘플링 → 약 238,000개
 - 전처리: IP/Port 제거 → MinMaxScaler(정상 데이터로만 fit) → Sliding Window(3D 텐서 변환)
 
+![Sliding Window Concept](visualizations/vis10_sliding_window.png)
+
 원본 CSV는 용량 문제로 이 저장소에 포함하지 않는다. CICIDS2017 공식 페이지에서 직접 받아 `data/CICIDS2017/`에 두면 된다.
 
 ---
@@ -80,6 +89,8 @@ tanh 적용 후 LSTM 에폭당 속도가 114.86s → 72.07s로 38% 향상됐다.
 
 ## 최종 성능 (튜닝 후)
 
+![Final Model Performance](visualizations/vis7_radar_final.png)
+
 ### 1차 MLP 튜닝 결과
 
 | 모델 | BruteForce | DoS | DDoS | 평균 Recall |
@@ -106,6 +117,8 @@ BASE가 최적이었다. p97 → Precision 소폭 상승 but Recall 급락. unit
 ---
 
 ## Streamlit 시연 결과
+
+![BruteForce 탐지 불가 원인 분석](visualizations/vis9_bruteforce_concept.png)
 
 | 공격 유형 | 데모 탐지율 | Kaggle 평가 결과 | 비고 |
 |-----------|-----------|----------------|------|
