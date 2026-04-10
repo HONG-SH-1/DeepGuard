@@ -4,15 +4,17 @@
 ![TensorFlow](https://img.shields.io/badge/TensorFlow-FF6F00?logo=tensorflow&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit&logoColor=white)
 
-CICIDS2017 데이터셋을 기반으로 2-Tier Cascade 아키텍처를 구현한 비지도학습 NIDS다.
-각 Tier에서 다수 모델을 벤치마크한 뒤 최고 성능 모델을 선정해 튜닝했다.
+**실시간 처리 속도(Latency)와 탐지 정밀도(Precision)의 트레이드오프를 해결하기 위해, 2-Tier Cascade 아키텍처를 독자적으로 설계 및 구현한 딥러닝 기반 네트워크 침입 탐지 시스템(NIDS)이다.**
 
+각 Tier에서 다수 모델을 벤치마크한 뒤 최고 성능 모델을 선정해 튜닝한다.
 1차 방어선에서 MLP가 빠르게 의심 트래픽을 걸러 내고, 2차 방어선에서 Bi-LSTM이 정밀 심층 검사를 수행한다.
-두 모델 모두 Autoencoder 기반 비지도학습으로 정상 패턴만 학습하기 때문에, 학습 데이터에 없는 Zero-Day Attack도 탐지 가능하다.
+두 모델 모두 Autoencoder 기반 비지도학습으로 정상 패턴만 학습하므로, 학습 데이터에 없는 Zero-Day Attack도 탐지 가능하다.
 
 ---
 
 ## 아키텍처
+
+> 네트워크 트래픽 → 1차 고속 필터(MLP) → 2차 정밀 검사(Bi-LSTM)로 이어지는 Cascade 구조와 선정 근거를 한곳에 묶어 정리한다.
 
 ![2-Tier Cascade Architecture](visualizations/vis4_waterfall_2tier_fix.png)
 
@@ -61,11 +63,13 @@ CICIDS2017 (Canadian Institute for Cybersecurity)
 
 ![Sliding Window Concept](visualizations/vis10_sliding_window_fix.png)
 
-원본 CSV는 용량 문제로 이 저장소에 포함하지 않는다. CICIDS2017 공식 페이지에서 직접 받아 `data/CICIDS2017/`에 두면 된다.
+원본 CSV는 용량 문제로 이 저장소에 포함하지 않는다. CICIDS2017 공식 페이지에서 직접 받아 `data/CICIDS2017/`에 배치한다.
 
 ---
 
 ## 벤치마크 결과
+
+> 동일한 평가 프로토콜로 1차·2차 방어선 후보를 비교한 수치 요약.
 
 ### 1차 방어선 (Window=5, relu)
 
@@ -85,7 +89,7 @@ MLP 선정 근거: Recall 차이 0.004로 유의미하지 않고, 속도는 CNN 
 | LSTM | 0.170 | 0.637 | 0.885 | 0.564 | 72.07s | 0.002361 |
 | **Bi-LSTM** ✅ | 0.135 | **0.681** | **0.905** | **0.573** | 120.77s | 0.000907 |
 
-2차 방어선에서 relu 대신 tanh를 적용했다. Window=20의 긴 시퀀스에서 기울기 폭발을 방지하고 학습 효율을 높이기 위해서다.
+2차 방어선에서 relu 대신 tanh을 적용한다. Window=20의 긴 시퀀스에서 기울기 폭발을 막고 학습 효율을 높이기 위한 선택이다.
 tanh 적용 후 LSTM 에폭당 속도가 114.86s → 72.07s로 38% 향상됐다.
 
 ---
@@ -104,7 +108,7 @@ tanh 적용 후 LSTM 에폭당 속도가 114.86s → 72.07s로 38% 향상됐다.
 | TUN3 (u128, p90) | 0.117 | 0.650 | 0.686 | 0.484 ↓ |
 | TUN4 (u64, p95, drop) | 0.069 | 0.706 | 0.801 | 0.525 ↓ |
 
-임계값 완화(p95 → p90)가 BruteForce Recall을 2배 향상시킨 핵심이었다. units 증가와 Dropout은 효과가 없었다.
+임계값 완화(p95 → p90)가 BruteForce Recall을 2배 끌어올린 핵심 요인이었다. units 증가와 Dropout은 효과가 없었다.
 
 ### 2차 Bi-LSTM 튜닝 결과
 
@@ -115,7 +119,7 @@ tanh 적용 후 LSTM 에폭당 속도가 114.86s → 72.07s로 38% 향상됐다.
 | TUN_B (u32, p95) | 0.142 | 0.392 | 0.890 | 0.475 ↓ | 0.389 |
 | TUN_C (u32, p97) | 0.090 | 0.335 | 0.872 | 0.432 ↓ | 0.404 |
 
-BASE가 최적이었다. p97 → Precision 소폭 상승 but Recall 급락. units=32 압축 시 DoS 0.681 → 0.392 폭락.
+BASE가 최적이다. p97 → Precision 소폭 상승 but Recall 급락. units=32 압축 시 DoS 0.681 → 0.392 폭락.
 
 ---
 
@@ -130,9 +134,9 @@ BASE가 최적이었다. p97 → Precision 소폭 상승 but Recall 급락. unit
 | DDoS | 99.6% | 0.905 | Kaggle 90%와 유사 |
 
 BruteForce 탐지율이 낮은 이유는 비지도 학습의 구조적 한계다.
-초기 BruteForce 패킷은 정상 로그인 시도와 수학적으로 동일하게 생겼다.
+초기 BruteForce 패킷은 정상 로그인 시도와 수학적으로 동일하게 생긴다.
 IP/Port를 제거하고 순수 통계 피처만 보는 Autoencoder 입장에서는 버퍼에 비정상 반복 패턴이 쌓이기 전까지 탐지가 불가능하다.
-이 결과를 근거로 Rule-based 시스템(Snort/Suricata)과의 하이브리드 아키텍처가 실무에서 필수적임을 확인했다.
+이 결과를 근거로 Rule-based 시스템(Snort/Suricata)과의 하이브리드 아키텍처가 실무에서 필수임을 확인한다.
 
 ---
 
@@ -195,10 +199,10 @@ streamlit run dashboard/app.py
 
 ## 주요 트러블슈팅
 
-데이터 파이프라인 구축 및 모델링 과정에서 발생한 핵심 엔지니어링 문제를 다음과 같이 해결했습니다.
+> 데이터 파이프라인·모델링 단계에서 발생한 엔지니어링 이슈와 대응 요약.
 
 | # | 문제 현상 | 원인 분석 | 해결 방안 |
-|---|------|------|------|
+|---|-----------|----------|----------|
 | 1 | OOM(Out of Memory) 발생 | 52만 개 데이터 전체 Window 변환 시 RAM 초과 | Kaggle(30GB RAM) 전환 및 메모리 가비지 컬렉션(`gc.collect()`) 최적화 |
 | 2 | W5/W20 인덱스 불일치 | Window 크기 차이로 인해 1차/2차 모델이 다른 시점의 패킷을 참조 | 동일 시점 $t$ 기준 동기화 슬라이딩 윈도우 자체 구현 |
 | 3 | 데이터 샘플링 시 탐지율 왜곡 | `.sample()` 무작위 추출로 시계열 연속성과 공격 패턴 파괴 | `.iloc[]`을 활용한 연속 추출(Sequential Sampling) 방식으로 변경 |
@@ -209,17 +213,19 @@ streamlit run dashboard/app.py
 
 ## 한계점 및 향후 로드맵
 
-단일 딥러닝 모델의 구조적 한계를 인지하고, 실무 환경에 적합한 시스템으로 발전시킬 계획입니다.
+단일 딥러닝 모델의 구조적 한계를 인정하고, 실무 환경에 맞는 형태로 확장할 로드맵을 둔다.
 
 - **하이브리드 아키텍처 구축:** 비지도 학습 특성상 초기 탐지가 어려운 BruteForce는 Rule-based(Snort/Suricata)로 즉각 차단하고, DeepGuard는 Zero-Day/DDoS 등 지능형 방어에 집중하는 융합 시스템 구현.
 - **실시간 트래픽 연동:** 현재의 CSV 데모 시연을 넘어, FastAPI를 활용한 네트워크 패킷 스트림 실시간 연동.
 - **탐지 결과 DB화:** Java Spring Boot 백엔드와 연동하여 분석 결과를 데이터베이스에 적재하고 통계화.
 - **다양한 데이터셋 검증:** CICIDS2017 단일 데이터셋 의존도를 낮추고 최신 공격 트래픽 데이터 추가 검증.
 
+---
+
 ## 라이선스·데이터 사용
 
 CICIDS2017 데이터셋은 Canadian Institute for Cybersecurity가 제공한다.
-다운로드·인용·재배포 규칙은 [데이터셋 페이지](https://www.unb.ca/cic/datasets/ids-2017.html)와 UNB 약관을 따른다.
-이 저장소에는 원본 CSV를 포함하지 않는다.
+다운로드·인용·재배포 규칙은 [데이터셋 페이지](https://www.unb.ca/cic/datasets/ids-2017.html)와 UNB 약관을 준수한다.
+이 저장소에는 원본 CSV를 포함하지 않음.
 
-코드는 학습·포트폴리오 참고용으로 올려 두었다.
+코드는 학습·포트폴리오 참고용으로 올려둠.
