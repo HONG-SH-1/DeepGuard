@@ -215,7 +215,7 @@ streamlit run dashboard/app.py
 
 단일 딥러닝 모델의 구조적 한계를 인정하고, 실무 환경에 맞는 형태로 확장할 로드맵을 둔다.
 
-- **하이브리드 아키텍처 구축:** 비지도 학습 특성상 초기 탐지가 어려운 BruteForce는 Rule-based(Snort/Suricata)로 즉각 차단하고, DeepGuard는 Zero-Day/DDoS 등 지능형 방어에 집중하는 융합 시스템 구현.
+- **하이브리드 아키텍처 구축:** 비지도 학습 특성상 초기 탐지가 어려운 BruteForce는 Rule-based(Snort/Suricata)로 즉각 차단하고, DeepGuard는 학습에 없던 이상 트래픽과 DDoS 탐지에 집중하는 융합 시스템 구현.
 - **실시간 트래픽 연동:** 현재의 CSV 데모 시연을 넘어, FastAPI를 활용한 네트워크 패킷 스트림 실시간 연동.
 - **탐지 결과 DB화:** Java Spring Boot 백엔드와 연동하여 분석 결과를 데이터베이스에 적재하고 통계화.
 - **다양한 데이터셋 검증:** CICIDS2017 단일 데이터셋 의존도를 낮추고 최신 공격 트래픽 데이터 추가 검증.
