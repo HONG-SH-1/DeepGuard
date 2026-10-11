@@ -8,7 +8,7 @@
 
 각 Tier에서 다수 모델을 벤치마크한 뒤 최고 성능 모델을 선정해 튜닝한다.
 1차 방어선에서 MLP가 빠르게 의심 트래픽을 걸러 내고, 2차 방어선에서 Bi-LSTM이 정밀 심층 검사를 수행한다.
-두 모델 모두 Autoencoder 기반 비지도학습으로 정상 패턴만 학습하므로, 학습 데이터에 없는 Zero-Day Attack도 탐지 가능하다.
+두 모델 모두 Autoencoder 기반 비지도학습으로 정상 패턴만 학습한다. 학습에 없던 공격도 정상과 다르면 이상으로 잡도록 설계했지만, BruteForce처럼 초기에 정상과 구별되지 않는 공격은 놓친다(아래 한계 참고).
 
 ---
 
@@ -58,7 +58,7 @@ CICIDS2017 (Canadian Institute for Cybersecurity)
 | Friday-Afternoon | DDoS | 테스트 |
 
 - 전체 피처: 79개 → 전처리 후 78개
-- 학습 데이터: 529,481개 중 50% 샘플링 → 약 238,000개
+- 학습 데이터: 529,481개 → 학습:검증 9:1 분할 후 학습 데이터의 절반 사용 → 약 238,000개 (W5 기준 238,264개)
 - 전처리: IP/Port 제거 → MinMaxScaler(정상 데이터로만 fit) → Sliding Window(3D 텐서 변환)
 
 ![Sliding Window Concept](visualizations/vis10_sliding_window_fix.png)
@@ -205,7 +205,7 @@ streamlit run dashboard/app.py
 |---|-----------|----------|----------|
 | 1 | OOM(Out of Memory) 발생 | 52만 개 데이터 전체 Window 변환 시 RAM 초과 | Kaggle(30GB RAM) 전환 및 메모리 가비지 컬렉션(`gc.collect()`) 최적화 |
 | 2 | W5/W20 인덱스 불일치 | Window 크기 차이로 인해 1차/2차 모델이 다른 시점의 패킷을 참조 | 동일 시점 $t$ 기준 동기화 슬라이딩 윈도우 자체 구현 |
-| 3 | 데이터 샘플링 시 탐지율 왜곡 | `.sample()` 무작위 추출로 시계열 연속성과 공격 패턴 파괴 | `.iloc[]`을 활용한 연속 추출(Sequential Sampling) 방식으로 변경 |
+| 3 | 데이터 샘플링 시 탐지율 왜곡 | `.sample()` 무작위 추출로 시계열 연속성과 공격 패턴 파괴 | W20 테스트 데이터는 [:50000] 슬라이싱으로 앞 50,000행을 연속 추출(Sequential Sampling)하는 방식으로 변경. 학습 데이터는 윈도우 생성 후 `train_test_split`으로 섞어 절반만 사용(윈도우 내부 연속성은 유지) |
 | 4 | 2차 모델(Bi-LSTM) 학습 지연/저하 | 1차 모델의 `relu`를 2차에도 동일 적용하여 기울기 문제 발생 | 긴 시퀀스(W=20)에 적합한 `tanh`로 변경 후 속도 38% 향상 |
 | 5 | 대시보드 상태 초기화 버그 | Streamlit 버튼 클릭 시마다 전체 스크립트가 재실행됨 | `st.session_state`를 적용하여 데이터 전처리 및 분석 상태 유지 |
 
